@@ -132,10 +132,6 @@ def save_report(df_classified, df_clean, scopus_count, wos_count, merged_count, 
 def main():
     scopus = "export_Scopus.ris"
     wos = "export_WoS.ris"
-    
-    scopus_count = len(df_scopus)
-    wos_count = len(df_wos)
-    merged_count = len(df_merged)
 
     script_name = os.path.basename(__file__)
 
@@ -145,6 +141,11 @@ def main():
     df_merged = pd.concat([df_scopus, df_wos], ignore_index=True)
 
     df_classified = classify_records(df_merged)
+        
+    scopus_count = len(df_scopus)
+    wos_count = len(df_wos)
+    merged_count = len(df_merged)
+
 
     # Master dataset
     df_classified.to_excel("all_records_with_status.xlsx", index=False)
