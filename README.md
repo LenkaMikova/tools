@@ -1,5 +1,5 @@
 # WoS Scopus Query generator
-[Python script]() generates structured search queries for two major bibliographic databases: Web of Science and Scopus.
+[Python script](https://github.com/LenkaMikova/tools/blob/main/WoS_Scopus_query.py) generates structured search queries for two major bibliographic databases: Web of Science and Scopus.
 
 The script standardizes query construction across both platforms by translating user-defined keyword groups into database-specific syntax. It supports Boolean logic (AND, OR, NOT), phrase searching, wildcard expansion, and optional filters such as publication year, document type, and language.
 
