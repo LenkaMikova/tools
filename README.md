@@ -1,47 +1,70 @@
-# WoS Scopus Query Generator
+# WoS Scopus Query Generator (Field-Aware)
 
-[Python script](https://github.com/LenkaMikova/tools/blob/main/WoS_Scopus_query.py) for generating structured search queries for two major bibliographic databases: [Web of Science](https://www.webofscience.com/) and [Scopus](https://www.scopus.com/).
+[Python script](https://github.com/LenkaMikova/tools/blob/main/WoS_Scopus_query.py) for generating structured search queries for two major bibliographic databases: Web of Science and Scopus.
 
-The script standardizes query construction across both platforms by translating user-defined keyword groups into database-specific syntax. It is designed to support transparent and reproducible search strategy development for systematic reviews and bibliometric analyses.
+This version extends the basic query builder by allowing field-specific search (Title, Abstract, Topic, All Fields), enabling more precise and reproducible search strategies.
 
 ## Key Features
 
-- Interactive input of keyword groups  
+- Interactive input of keyword groups with field specification  
   - OR logic within groups (synonyms)  
   - AND logic between groups (concept combination)  
 
-- Support for Boolean operators  
-  - AND, OR, NOT  
+- Field-specific search support  
+  - Topic  
+  - Title  
+  - Abstract  
+  - All fields  
 
 - Automatic syntax translation  
-  - Web of Science: `TS=()`  
-  - Scopus: `TITLE-ABS-KEY()`  
+  - Web of Science: `TS=`, `TI=`, `AB=`  
+  - Scopus: `TITLE-ABS-KEY`, `TITLE`, `ABS`  
+
+- Boolean logic support  
+  - AND, OR, NOT  
 
 - Optional filters  
   - publication year range  
-  - document type  
   - language  
 
-- Variant generation  
-  - wildcard expansion (`*`) for broader retrieval  
-
 - Export functionality  
-  - `.txt` file with generated queries  
-  - `.json` file containing full search strategy (input parameters + queries)  
+  - `.json` file containing full search strategy (inputs + queries)  
+
+## Input Format
+
+**Each group is entered as:**
+- *term1, term2 | field*
+
+**Example:**
+- *soil moisture | title*
+- *remote sensing, UAV, drone* | abstract*
+- *high resolution, field scale | topic*
+
+
+## Output
+
+The script generates two queries:
+
+- Web of Science query  
+- Scopus query  
+
+Both queries are aligned in logic but adapted to database-specific syntax.
 
 ## Use Case
 
-The script is intended for:
+The tool is intended for:
+
 - systematic literature reviews  
-- bibliometric and scientometric studies  
+- bibliometric analyses  
 - reproducible search strategy design  
 
-It helps ensure consistency between databases and reduces errors in manual query construction.
+It is particularly useful when combining multiple concepts with different field constraints.
 
 ## Notes
 
-- The script generates search queries only; it does not retrieve records from databases.  
-- Data export formats such as RIS should be generated after running queries directly within database interfaces.
+- Field-specific queries may significantly reduce result counts.  
+- Web of Science and Scopus fields are not perfectly equivalent.  
+- The script generates queries only; it does not retrieve records.  
 
 ## Documentation
 
