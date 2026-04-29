@@ -8,15 +8,16 @@ from datetime import datetime
 def get_user_input():
     print("Enter keyword groups with field specification.")
     print("Format: term1, term2 | field")
-    print("Fields: topic, title, abstract, all")
-    print("Example: soil moisture | title\n")
+    print("Fields: topic, title, abstract, all\n")
 
     groups = []
 
     while True:
         line = input("Group: ")
+
         if not line.strip():
-            break
+            print("Empty input. Skipping...")
+            continue
 
         try:
             terms_part, field = line.split("|")
@@ -28,7 +29,12 @@ def get_user_input():
 
         groups.append({"terms": terms, "field": field})
 
-    exclude = input("Exclude terms (comma-separated, optional): ")
+        # --- NOVÁ ČÁST ---
+        cont = input("Add another group? (y/n): ").lower()
+        if cont != "y":
+            break
+
+    exclude = input("\nExclude terms (comma-separated, optional): ")
     exclude_terms = [t.strip() for t in exclude.split(",")] if exclude else []
 
     year_from = input("Year from: ")
