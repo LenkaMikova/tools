@@ -45,5 +45,5 @@ It helps ensure consistency between databases and reduces errors in manual query
 
 ## Documentation
 
-- [Web of Science search syntax:](https://www.clarivate.com/webofsciencegroup/support/wos/)
-- [Scopus search syntax:](https://dev.elsevier.com/sc_search_tips.html)
+- [Web of Science search syntax](https://www.clarivate.com/webofsciencegroup/support/wos/)
+- [Scopus search syntax](https://dev.elsevier.com/sc_search_tips.html)
