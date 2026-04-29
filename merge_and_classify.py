@@ -88,21 +88,41 @@ def export_ris(df, path):
 # =========================
 # REPORT
 # =========================
-def save_report(df, script_name):
+def save_report(df_classified, df_clean, scopus_count, wos_count, merged_count, script_name):
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     report_path = "processing_report.txt"
 
-    stats = df["status"].value_counts()
+    stats = df_classified["status"].value_counts()
+    # Export for PRISA table
+    stats.to_csv("prisma_counts.csv")
+    removed_count = merged_count - len(df_clean)
 
     with open(report_path, "w", encoding="utf-8") as f:
         f.write("=== DATA PROCESSING REPORT ===\n")
         f.write(f"Date and time: {now}\n")
         f.write(f"Script used: {script_name}\n\n")
 
+        # Source counts
+        f.write("INPUT DATA\n")
+        f.write(f"Records from Scopus: {scopus_count}\n")
+        f.write(f"Records from WoS: {wos_count}\n")
+        f.write(f"Total merged records: {merged_count}\n\n")
+
+        # Status breakdown
+        f.write("CLASSIFICATION SUMMARY\n")
         for key in stats.index:
             f.write(f"{key}: {stats[key]}\n")
 
-        f.write(f"\nFinal records used: {stats.get('correct_record', 0)}\n")
+        # Final counts
+        f.write("\nFINAL COUNTS\n")
+        f.write(f"Records retained (correct_record): {len(df_clean)}\n")
+        f.write(f"Records removed: {removed_count}\n\n")
+
+        # Info about outputs
+        f.write("OUTPUT FILES\n")
+        f.write("- all_records_with_status.xlsx (master dataset with classification)\n")
+        f.write("- clean_records.xlsx / .csv (filtered dataset)\n")
+        f.write("- clean_records.ris (for reference managers)\n")
 
     return report_path
 
@@ -112,6 +132,10 @@ def save_report(df, script_name):
 def main():
     scopus = "export_Scopus.ris"
     wos = "export_WoS.ris"
+    
+    scopus_count = len(df_scopus)
+    wos_count = len(df_wos)
+    merged_count = len(df_merged)
 
     script_name = os.path.basename(__file__)
 
@@ -134,7 +158,15 @@ def main():
     export_ris(df_classified, "clean_records.ris")
 
     # Report
-    report_file = save_report(df_classified, script_name)
+        # Report
+    report_file = save_report(
+        df_classified,
+        df_clean,
+        scopus_count,
+        wos_count,
+        merged_count,
+        script_name
+    )
 
     print("Processing finished.")
     print(f"Report saved as: {report_file}")
