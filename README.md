@@ -1,22 +1,49 @@
-# WoS Scopus Query generator
-[Python script](https://github.com/LenkaMikova/tools/blob/main/WoS_Scopus_query.py) generates structured search queries for two major bibliographic databases: Web of Science and Scopus.
+# WoS Scopus Query Generator
 
-The script standardizes query construction across both platforms by translating user-defined keyword groups into database-specific syntax. It supports Boolean logic (AND, OR, NOT), phrase searching, wildcard expansion, and optional filters such as publication year, document type, and language.
+[Python script](https://github.com/LenkaMikova/tools/blob/main/WoS_Scopus_query.py) for generating structured search queries for two major bibliographic databases: :contentReference[oaicite:0]{index=0} and :contentReference[oaicite:1]{index=1}.
+
+The script standardizes query construction across both platforms by translating user-defined keyword groups into database-specific syntax. It is designed to support transparent and reproducible search strategy development for systematic reviews and bibliometric analyses.
 
 ## Key Features
-- Interactive input of keyword groups (logical OR within groups, AND between groups)
-- Exclusion terms using NOT logic
-- Automatic syntax translation:
-  - Web of Science: TS=()
-  - Scopus: TITLE-ABS-KEY()
-- Filtering options:
-  - publication year range
-  - document type
-  - language
-- Variant generation using wildcard expansion (*)
 
-- Export functionality:
-  - .txt file containing generated queries
-  - .ris template file for reference management workflows
+- Interactive input of keyword groups  
+  - OR logic within groups (synonyms)  
+  - AND logic between groups (concept combination)  
 
-The script is intended for systematic reviews, bibliometric analyses, and reproducible search strategy design.
+- Support for Boolean operators  
+  - AND, OR, NOT  
+
+- Automatic syntax translation  
+  - Web of Science: `TS=()`  
+  - Scopus: `TITLE-ABS-KEY()`  
+
+- Optional filters  
+  - publication year range  
+  - document type  
+  - language  
+
+- Variant generation  
+  - wildcard expansion (`*`) for broader retrieval  
+
+- Export functionality  
+  - `.txt` file with generated queries  
+  - `.json` file containing full search strategy (input parameters + queries)  
+
+## Use Case
+
+The script is intended for:
+- systematic literature reviews  
+- bibliometric and scientometric studies  
+- reproducible search strategy design  
+
+It helps ensure consistency between databases and reduces errors in manual query construction.
+
+## Notes
+
+- The script generates search queries only; it does not retrieve records from databases.  
+- Data export formats such as RIS should be generated after running queries directly within database interfaces.
+
+## Documentation
+
+- Web of Science search syntax: https://www.clarivate.com/webofsciencegroup/support/wos/  
+- Scopus search syntax: https://dev.elsevier.com/sc_search_tips.html  
