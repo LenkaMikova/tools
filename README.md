@@ -1,6 +1,6 @@
 # WoS Scopus Query Generator
 
-[Python script](https://github.com/LenkaMikova/tools/blob/main/WoS_Scopus_query.py) for generating structured search queries for two major bibliographic databases: :contentReference[oaicite:0]{index=0} and :contentReference[oaicite:1]{index=1}.
+[Python script](https://github.com/LenkaMikova/tools/blob/main/WoS_Scopus_query.py) for generating structured search queries for two major bibliographic databases: [Web of Science](https://www.webofscience.com/) and [Scopus](https://www.scopus.com/).
 
 The script standardizes query construction across both platforms by translating user-defined keyword groups into database-specific syntax. It is designed to support transparent and reproducible search strategy development for systematic reviews and bibliometric analyses.
 
@@ -45,5 +45,5 @@ It helps ensure consistency between databases and reduces errors in manual query
 
 ## Documentation
 
-- Web of Science search syntax: https://www.clarivate.com/webofsciencegroup/support/wos/  
-- Scopus search syntax: https://dev.elsevier.com/sc_search_tips.html  
+- [Web of Science search syntax:] (https://www.clarivate.com/webofsciencegroup/support/wos/)
+- [Scopus search syntax:] (https://dev.elsevier.com/sc_search_tips.html)
