@@ -1,3 +1,5 @@
+# Screening and Classification Script
+
 This Python script performs semi-automated screening and classification of bibliographic records based on title, abstract, and keywords. It is designed to support the initial stage of systematic reviews by providing structured categorization and relevance assessment.
 
 ## Purpose
