@@ -67,12 +67,6 @@ Script for merging, cleaning, and classifying RIS exports from:
 - `non_article_type`
 - `outside_scope`
 
-## Requirements
-
-```bash
-pip install pandas openpyxl
-
-```
 ---
 
 ## 3. Initial Screening and Classification
@@ -106,4 +100,9 @@ This script performs semi-automated screening of bibliographic records based on 
 - Final decisions should be recorded in `final_inclusion`  
 
 ---
+## Requirements
 
+```bash
+pip install pandas openpyxl
+
+```
