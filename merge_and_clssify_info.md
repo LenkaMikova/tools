@@ -4,15 +4,15 @@
 
 ## Purpose
 
-The script is designed to support systematic reviews following the PRISMA guidelines by providing:
+The script supports systematic literature reviews following PRISMA guidelines by ensuring:
 
-- Transparent data processing
-- Reproducible workflow
-- Full audit trail of included and excluded records
+- transparent data processing
+- reproducible workflow
+- full audit trail of all records (included and excluded)
 
 ## Input Data
 
-The script expects two RIS files in the working directory:
+The script expects two RIS files:
 
 - `export_Scopus.ris`
 - `export_WoS.ris`
@@ -21,58 +21,68 @@ These files should be exported from:
 - Web of Science
 - Scopus
 
+## Processing Steps
+
+1. Parse RIS files into structured tables  
+2. Merge datasets from both databases  
+3. Classify records based on predefined criteria  
+4. Identify duplicates and incomplete records  
+5. Export cleaned dataset and diagnostic files  
+6. Generate a processing report with record counts  
+
 ## Output Files
 
-The script generates:
-
+### Main datasets
 - `all_records_with_status.xlsx`  
-  → Full dataset with classification and exclusion reasons
+  Complete dataset with classification and exclusion reasons  
 
 - `clean_records.xlsx` / `clean_records.csv`  
-  → Filtered dataset containing only valid records
+  Filtered dataset used for further analysis  
 
 - `clean_records.ris`  
-  → Clean dataset ready for import into reference managers (e.g., Zotero)
+  Clean dataset for reference management software  
 
+### Diagnostics (for manual validation)
+- `duplicates_doi.xlsx`  
+  All records sharing the same DOI (both entries retained)
+
+- `duplicates_title.xlsx`  
+  Potential duplicates based on title and publication year  
+
+- `missing_doi.xlsx`  
+  Records without DOI  
+
+### Reporting
 - `processing_report.txt`  
-  → Summary report including counts and processing metadata
+  Summary of processing steps and record counts  
+
+- `prisma_counts.csv`  
+  Counts by record status for PRISMA diagram  
 
 ## Record Classification
 
-Each record is assigned a `status` and (if excluded) an `exclusion_reason`.
+Each record is assigned:
+- `status`
+- `exclusion_reason`
 
-### Status categories:
+### Status categories
 
-- `correct_record`
-- `duplicate_doi`
-- `duplicate_title`
-- `missing_doi`
-- `incomplete_record`
-- `non_article_type`
-- `outside_scope` (manual or keyword-based)
-
-## Workflow
-
-1. Parse RIS files
-2. Merge datasets
-3. Classify records
-4. Export:
-   - full dataset
-   - cleaned dataset
-   - RIS file
-5. Generate processing report
+- `correct_record`  
+- `duplicate_doi`  
+- `duplicate_title`  
+- `missing_doi`  
+- `incomplete_record`  
+- `non_article_type`  
+- `outside_scope`  
 
 ## PRISMA Compliance
 
-The script supports the PRISMA workflow by:
+The script supports PRISMA by:
 
-- tracking record counts
 - preserving all records (no data loss)
-- documenting exclusion reasons
+- tracking exclusions with reasons
 - enabling reproducibility
-
-Official PRISMA guidelines:
-https://www.prisma-statement.org/
+- generating structured outputs for PRISMA flow diagrams
 
 ## Requirements
 
@@ -83,4 +93,5 @@ https://www.prisma-statement.org/
 Install dependencies:
 
 ```bash
-pip install pandas openpyxl
+python pip install pandas openpyxl
+```
