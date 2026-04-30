@@ -3,6 +3,7 @@
 Collection of Python scripts for:
 - generating reproducible search queries
 - processing bibliographic data for PRISMA-based reviews
+- semi-automated screening and classification of records
 
 ---
 
