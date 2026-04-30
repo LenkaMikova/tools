@@ -42,14 +42,20 @@ Script for merging, cleaning, and classifying RIS exports from:
 - Scopus
 
 ### Outputs
-- `all_records_with_status.xlsx` → full dataset including classification and exclusion reasons (audit trail)
-- `clean_records.xlsx / .csv` → filtered dataset containing only valid records
-- `clean_records.ris` → cleaned dataset for import into reference managers (e.g., Zotero)
-- `processing_report.txt` → summary report with record counts (PRISMA-ready)
-- - `prisma_counts.csv` → counts of records by status (for PRISMA diagram)
-- `duplicates_doi.xlsx` → all records sharing the same DOI (for manual verification)
-- `duplicates_title.xlsx` → potential duplicates based on title and year
-- `missing_doi.xlsx` → records without DOI
+
+**Main datasets**
+- `all_records_with_status.xlsx` → Complete dataset including classification labels and exclusion reasons (full audit trail)
+- `clean_records.xlsx` / `clean_records.csv` → Filtered dataset containing only records classified as `correct_record`
+- `clean_records.ris` → Clean dataset for import into reference managers (e.g., Zotero)
+
+**Diagnostics (manual validation)**
+- `duplicates_doi.xlsx` → All records sharing the same DOI (all duplicate entries retained)
+- `duplicates_title.xlsx` → Potential duplicates based on title and publication year
+- `missing_doi.xlsx` → Records without DOI
+
+**Reporting**
+- `processing_report.txt` → Detailed processing summary (PRISMA-ready)
+- `prisma_counts.csv` → Counts of records by classification status for PRISMA diagram
 
 ### Record status
 - `correct_record`
@@ -60,12 +66,10 @@ Script for merging, cleaning, and classifying RIS exports from:
 - `non_article_type`
 - `outside_scope`
 
----
-
 ## Requirements
 
 ```bash
 pip install pandas openpyxl
 
 ```
-
+---
