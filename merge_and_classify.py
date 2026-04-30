@@ -90,31 +90,43 @@ def export_ris(df, path):
 # =========================
 
 def export_diagnostics(df):
-    # --- DUPLICATE DOI (all occurrences) ---
+
+    # =========================
+    # DUPLICATE DOI (ALL RECORDS)
+    # =========================
     if 'DO' in df.columns:
-        dup_doi_all = df[df['DO'].notna() & df.duplicated(subset=['DO'], keep=False)]
-        dup_doi_all = dup_doi_all.sort_values(by='DO')
-        dup_doi_all['dup_group'] = dup_doi_all.groupby('DO').ngroup()
-        dup_doi_all.to_excel("duplicates_doi.xlsx", index=False)
+        dup_doi = df[
+            df['DO'].notna() &
+            df.duplicated(subset=['DO'], keep=False)
+        ].copy()
 
-    # --- DUPLICATE TITLE (all occurrences) ---
-    dup_title_all = df[df.duplicated(subset=['TI', 'PY'], keep=False)]
-    dup_title_all = dup_title_all.sort_values(by=['TI', 'PY'])
-    dup_title_all.to_excel("duplicates_title.xlsx", index=False)
+        if not dup_doi.empty:
+            dup_doi = dup_doi.sort_values(by='DO')
 
-    # --- MISSING DOI ---
-    if 'DO' in df.columns:
-        missing_doi = df[df['DO'].isna()]
-    else:
-        missing_doi = df.copy()
+            # group ID for easier comparison
+            dup_doi['dup_group'] = dup_doi.groupby('DO').ngroup()
 
-    missing_doi.to_excel("missing_doi.xlsx", index=False)
+            cols_to_show = ['Source', 'TI', 'PY', 'DO']
+            dup_doi = dup_doi[cols_to_show + [c for c in dup_doi.columns if c not in cols_to_show]]
 
-    print("Diagnostic files saved:")
-    print("- duplicates_doi.xlsx")
-    print("- duplicates_title.xlsx")
-    print("- missing_doi.xlsx")
+            # export
+            dup_doi.to_excel("duplicates_doi.xlsx", index=False)
 
+    # =========================
+    # DUPLICATE TITLE (ALL RECORDS)
+    # =========================
+    dup_title = df[
+        df.duplicated(subset=['TI', 'PY'], keep=False)
+    ].copy()
+
+    if not dup_title.empty:
+        dup_title = dup_title.sort_values(by=['TI', 'PY'])
+        dup_title['dup_group'] = dup_title.groupby(['TI', 'PY']).ngroup()
+
+        cols_to_show = ['Source', 'TI', 'PY', 'DO']
+        dup_title = dup_title[cols_to_show + [c for c in dup_title.columns if c not in cols_to_show]]
+
+        dup_title.to_excel("duplicates_title.xlsx", index=False)
 # =========================
 # REPORT
 # =========================
