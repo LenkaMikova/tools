@@ -160,8 +160,10 @@ def save_report(df_classified, df_clean, scopus_count, wos_count, merged_count, 
 # MAIN
 # =========================
 def main():
-    scopus = "export_Scopus.ris"
-    wos = "export_WoS.ris"
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    scopus = os.path.join(base_dir, "export_Scopus.ris")
+    wos = os.path.join(base_dir, "export_WoS.ris")
 
     script_name = os.path.basename(__file__)
 
