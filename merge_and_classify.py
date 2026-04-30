@@ -165,7 +165,12 @@ def save_report(df_classified, df_clean, scopus_count, wos_count, merged_count, 
         f.write("- all_records_with_status.xlsx (master dataset with classification)\n")
         f.write("- clean_records.xlsx / .csv (filtered dataset)\n")
         f.write("- clean_records.ris (for reference managers)\n")
-
+        f.write("- duplicates_doi.xlsx (same DOI)\n")
+        f.write("- duplicates_title.xlsx (duplicates based on title)\n")
+        f.write("- missing_doi.xlsx (without DOI)\n")
+        f.write("- prisma_counts.csv (counts of records by PRISMA)\n")
+        f.write("- processing_report.txt (summary PRISMA ready)\n")
+        
     return report_path
 
 # =========================
