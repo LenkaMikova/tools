@@ -8,7 +8,7 @@ Collection of Python scripts for:
 
 ## 1. Query Generator
 
-[WoS_Scopus_query.py](https://github.com/LenkaMikova/tools/blob/main/WoS_Scopus_query.py)
+[WoS_Scopus_query.py](https://github.com/LenkaMikova/PRISMAtools/blob/main/WoS_Scopus_query.py)
 
 Generate structured search queries for:
 - Web of Science
@@ -35,7 +35,7 @@ Generate structured search queries for:
 
 ## 2. Bibliographic Processing (PRISMA)
 
-[merge_and_classify.py](https://github.com/LenkaMikova/tools/blob/main/merge_and_classify.py)
+[merge_and_classify.py](https://github.com/LenkaMikova/PRISMAtools/blob/main/merge_and_classify.py)
 
 Script for merging, cleaning, and classifying RIS exports from:
 - Web of Science
@@ -73,3 +73,36 @@ pip install pandas openpyxl
 
 ```
 ---
+
+## 3. Initial Screening and Classification
+
+[screening_script.py](https://github.com/LenkaMikova/PRISMAtools/blob/main/screening_and_deep_classify.py)
+
+This Python script performs semi-automated screening and classification of bibliographic records based on title, abstract, and keywords. It is designed to support the initial stage of systematic reviews by providing structured categorization and relevance assessment.
+
+This script performs semi-automated screening of bibliographic records based on title, abstract, and keywords.
+
+### Input
+- `clean_records.xlsx`
+
+### Output
+- `screened_records.xlsx` → dataset with added screening variables  
+- `screening_summary.txt` → summary of results  
+- `screening_summary.xlsx` → tabular overview  
+
+### What it does
+- assigns thematic categories (e.g., observation method, application domain, scaling)  
+- detects UAV applicability  
+- calculates a relevance score (0–10)  
+- identifies *must-cite* papers (high relevance)  
+- classifies records as:
+  - `include`
+  - `maybe`
+  - `exclude`
+
+### Notes
+- The script supports, but does not replace, manual screening  
+- Final decisions should be recorded in `final_inclusion`  
+
+---
+
