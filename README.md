@@ -37,15 +37,19 @@ Generate structured search queries for:
 
 [merge_and_classify.py](https://github.com/LenkaMikova/tools/blob/main/merge_and_classify.py)
 
-Merge, clean, and classify RIS exports from:
+Script for merging, cleaning, and classifying RIS exports from:
 - Web of Science
 - Scopus
 
 ### Outputs
-- `all_records_with_status.xlsx` → full dataset (audit trail)
-- `clean_records.xlsx / .csv` → filtered dataset
-- `clean_records.ris` → import to reference managers (e.g. Zotero)
-- `processing_report.txt` → PRISMA counts
+- `all_records_with_status.xlsx` → full dataset including classification and exclusion reasons (audit trail)
+- `clean_records.xlsx / .csv` → filtered dataset containing only valid records
+- `clean_records.ris` → cleaned dataset for import into reference managers (e.g., Zotero)
+- `processing_report.txt` → summary report with record counts (PRISMA-ready)
+- - `prisma_counts.csv` → counts of records by status (for PRISMA diagram)
+- `duplicates_doi.xlsx` → all records sharing the same DOI (for manual verification)
+- `duplicates_title.xlsx` → potential duplicates based on title and year
+- `missing_doi.xlsx` → records without DOI
 
 ### Record status
 - `correct_record`
@@ -62,4 +66,6 @@ Merge, clean, and classify RIS exports from:
 
 ```bash
 pip install pandas openpyxl
+
+```
 
