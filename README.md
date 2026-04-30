@@ -1,9 +1,9 @@
 # Tools for Systematic Review (WoS & Scopus)
 
 Collection of Python scripts for:
-- generating reproducible search queries
-- processing bibliographic data for PRISMA-based reviews
-- semi-automated screening and classification of records
+1. generating reproducible search queries
+2. processing bibliographic data for PRISMA-based reviews
+3. semi-automated screening and classification of records
 
 ---
 
