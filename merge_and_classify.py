@@ -44,7 +44,7 @@ def classify_records(df):
 
     # 3) missing_doi
     if 'DO' in df.columns:
-        mask = df['DO'].isna()
+        mask = df['DO'].isna() & (df["status"] == "correct_record")
         df.loc[mask, "status"] = "missing_doi"
         df.loc[mask, "exclusion_reason"] = "Missing DOI"
     else:
@@ -84,6 +84,36 @@ def export_ris(df, path):
                     if pd.notna(val) and col not in ['Source', 'status', 'exclusion_reason']:
                         f.write(f"{col}  - {val}\n")
                 f.write("ER  - \n\n")
+
+# =========================
+# EXPORT DIAGNOSTIC
+# =========================
+
+def export_diagnostics(df):
+    # --- DUPLICATE DOI (all occurrences) ---
+    if 'DO' in df.columns:
+        dup_doi_all = df[df['DO'].notna() & df.duplicated(subset=['DO'], keep=False)]
+        dup_doi_all = dup_doi_all.sort_values(by='DO')
+        dup_doi_all['dup_group'] = dup_doi_all.groupby('DO').ngroup()
+        dup_doi_all.to_excel("duplicates_doi.xlsx", index=False)
+
+    # --- DUPLICATE TITLE (all occurrences) ---
+    dup_title_all = df[df.duplicated(subset=['TI', 'PY'], keep=False)]
+    dup_title_all = dup_title_all.sort_values(by=['TI', 'PY'])
+    dup_title_all.to_excel("duplicates_title.xlsx", index=False)
+
+    # --- MISSING DOI ---
+    if 'DO' in df.columns:
+        missing_doi = df[df['DO'].isna()]
+    else:
+        missing_doi = df.copy()
+
+    missing_doi.to_excel("missing_doi.xlsx", index=False)
+
+    print("Diagnostic files saved:")
+    print("- duplicates_doi.xlsx")
+    print("- duplicates_title.xlsx")
+    print("- missing_doi.xlsx")
 
 # =========================
 # REPORT
@@ -141,7 +171,10 @@ def main():
     df_merged = pd.concat([df_scopus, df_wos], ignore_index=True)
 
     df_classified = classify_records(df_merged)
-        
+
+    # Diagnostics export (NEW)
+    export_diagnostics(df_classified)
+    
     scopus_count = len(df_scopus)
     wos_count = len(df_wos)
     merged_count = len(df_merged)
