@@ -1,6 +1,6 @@
 # Screening and Classification Script
 
-[Python](https://github.com/LenkaMikova/PRISMAtools/screening_and_deep_classify.py) script performs semi-automated screening and classification of bibliographic records based on title, abstract, and keywords. It is designed to support the initial stage of systematic reviews by providing structured categorization and relevance assessment.
+[Python script](https://github.com/LenkaMikova/PRISMAtools/screening_and_deep_classify.py) performs semi-automated screening and classification of bibliographic records based on title, abstract, and keywords. It is designed to support the initial stage of systematic reviews by providing structured categorization and relevance assessment.
 
 ## Purpose
 
