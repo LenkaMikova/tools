@@ -63,14 +63,9 @@ Script for merging, cleaning, and classifying RIS exports from:
 
 **Main datasets**
 
-- `all_records_with_status.xlsx`  
-  → Complete dataset with classification labels and exclusion reasons (full audit trail)
-
-- `clean_records.xlsx` / `clean_records.csv`  
-  → Filtered dataset containing only records classified as `correct_record`
-
-- `clean_records.ris`  
-  → Clean dataset for reference managers (e.g., Zotero)
+- `all_records_with_status.xlsx` → Complete dataset with classification labels and exclusion reasons (full audit trail)
+- `clean_records.xlsx` / `clean_records.csv` → Filtered dataset containing only records classified as `correct_record`
+- `clean_records.ris` → Clean dataset for reference managers (e.g., Zotero)
 
 **Diagnostics (manual validation)**
 
