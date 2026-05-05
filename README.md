@@ -39,3 +39,124 @@ Generate structured search queries for:
 ### Input Format
 
 Each group is entered as:
+*term1, term2 | field*
+
+
+**Example:**
+- soil moisture | title
+- remote sensing, UAV, drone | abstract
+- high resolution, field scale | topic
+
+
+---
+
+## 2. Bibliographic Processing (PRISMA)
+
+[merge_and_classify.py](https://github.com/LenkaMikova/PRISMAtools/blob/main/merge_and_classify.py)
+
+Script for merging, cleaning, and classifying RIS exports from:
+
+- Web of Science  
+- Scopus  
+
+### Outputs
+
+**Main datasets**
+
+- `all_records_with_status.xlsx`  
+  → Complete dataset with classification labels and exclusion reasons (full audit trail)
+
+- `clean_records.xlsx` / `clean_records.csv`  
+  → Filtered dataset containing only records classified as `correct_record`
+
+- `clean_records.ris`  
+  → Clean dataset for reference managers (e.g., Zotero)
+
+**Diagnostics (manual validation)**
+
+- `duplicates_doi.xlsx`  
+- `duplicates_title.xlsx`  
+- `missing_doi.xlsx`  
+
+**Reporting**
+
+- `processing_report.txt` → PRISMA-ready summary  
+- `prisma_counts.csv` → counts for PRISMA diagram  
+
+### Record Status
+
+- `correct_record`  
+- `duplicate_doi`  
+- `duplicate_title`  
+- `missing_doi`  
+- `incomplete_record`  
+- `non_article_type`  
+- `outside_scope`  
+
+---
+
+## 3. Screening and Initial Classification
+
+[screening_and_deep_classify.py](https://github.com/LenkaMikova/PRISMAtools/blob/main/screening_and_deep_classify.py)
+
+This script performs semi-automated screening of bibliographic records based on:
+
+- title  
+- abstract  
+- author keywords  
+
+### Input
+
+- `clean_records.xlsx`
+
+### Outputs
+
+- `screened_records.xlsx` → enriched dataset  
+- `screening_summary.txt` → PRISMA-ready summary  
+- `screening_summary.xlsx` → structured tables  
+- `keyword_statistics.txt` → keyword and category statistics  
+- `review_articles.xlsx / .ris` → separated review articles  
+
+### What it does
+
+- assigns thematic categories (platform, domain, methodology, scaling, sensors)  
+- detects UAV applicability  
+- identifies review articles (*is_review*)  
+- calculates relevance score (0–9)  
+- classifies records:
+  - `include` (high relevance)  
+  - `maybe` (uncertain relevance)  
+  - `exclude` (low relevance)  
+- flags *must-cite* studies (high priority)
+
+### Notes
+
+- Screening is intentionally **inclusive**  
+- Review articles are **excluded from analytical dataset**  
+- The script supports, but does not replace, manual screening  
+
+---
+
+## 4. Data Extraction Preparation
+
+[extraction_script.py](https://github.com/LenkaMikova/PRISMAtools/blob/main/extraction_script.py)
+
+Prepares structured datasets for manual data extraction from screened records.
+
+### Input
+- `screened_records.xlsx`
+
+### Outputs
+- `extraction_input_full.xlsx` → include + maybe records  
+- `extraction_input_refined.xlsx` → prioritized subset (include only)  
+- `review_articles.xlsx` → separated review papers  
+- `batches/` → smaller subsets (~50 records)  
+
+### Functionality
+- filters and cleans records  
+- separates review articles  
+- assigns priority (HIGH / MEDIUM / LOW)  
+- creates extraction templates with pre-filled metadata  
+
+### Note
+This script supports manual full-text data extraction and does not perform extraction itself.
