@@ -120,22 +120,37 @@ This script performs semi-automated screening of bibliographic records based on:
 
 ### What it does
 
-- assigns thematic categories (platform, domain, methodology, scaling, sensors)  
-- detects UAV applicability  
-- identifies review articles (*is_review*)  
-- calculates relevance score (0–9)  
+- assigns thematic categories (platform, domain, methodology, scaling, sensors)
+- identifies observation characteristics (sensor type, sensor mode, platform)
+- detects review articles (*is_review*)
+- evaluates UAV relevance at two levels:
+  - **direct UAV** applicability (explicit UAV/drone usage)
+  - **potential UAV** applicability (transferable satellite-based approaches, e.g., high-resolution, optical, or scaling-based methods)
+- calculates a relevance score (0–8) based on:
+  - soil moisture relevance
+  - UAV applicatbility (direct or potential)
+  - scaling approaches
+  - agricultural context   
 - classifies records:
   - `include` (high relevance)  
   - `maybe` (uncertain relevance)  
   - `exclude` (low relevance)  
-- flags *must-cite* studies (high priority)
-(https://github.com/LenkaMikova/PRISMAtools/blob/main/screening_and_deep_classify.py)
+- flags *must-cite* studies (high priority, typically scaling + UAV relevance)
+- 
 ### Notes
 
-- Screening is intentionally **inclusive**  
-- Review articles are **excluded from analytical dataset**  
-- The script supports, but does not replace, manual screening  
+- Screening is intentionally **inclusive**, prioritizing sensitivity over specificity
+- Review articles are **excluded from the analytical dataset** and stored separately
+- UAV relevance includes both **direct studies** and **transferable methodologies**, enabling identification of satellite-based approaches applicable to UAV workflows
+- The script supports, but does not replace, manual screening and full-text evaluation
 
+### Methodological implication
+
+The extended UAV relevance framework allows distinguishing between:
+- explicitly UAV-based studies
+- satellite-based studies with methodological potential for UAV application
+
+This distinction is critical for identifying transferable approaches (e.g., downscaling, data fusion) and supporting interpretation in later stages of the review.
 ---
 
 ## 4. Data Extraction Preparation
