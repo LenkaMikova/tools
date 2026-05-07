@@ -81,4 +81,108 @@ The script performs the following steps:
 
 ---
 
-## Output Structure
+## Output Files
+
+### Main datasets
+
+- `extraction_input_full.xlsx`  
+  → all records classified as *include* or *maybe*  
+
+- `extraction_input_refined.xlsx`  
+  → prioritized dataset (*include only*)  
+
+---
+
+### Batches
+
+- `batches/batch_X.xlsx`  
+  → smaller subsets (~50 records each)  
+  → intended for iterative manual processing  
+
+---
+
+### Review articles
+
+- `review_articles.xlsx`  
+  → records identified as review papers  
+  → excluded from extraction dataset  
+  → used for background/context  
+
+---
+
+## Extraction Template Structure
+
+### Automatically populated fields
+
+- Title  
+- Year  
+- DOI  
+- Priority  
+- Batch  
+- Platform  
+- Sensor type  
+- Sensor mode  
+- Application domain  
+- Scaling type  
+- UAV applicability  
+
+---
+
+### Manual fields
+
+- Study_area  
+- Country  
+- Method_type  
+- Model_name  
+- Spatial_resolution  
+- Temporal_resolution  
+- Validation_method  
+- RMSE  
+- R2  
+- Include_final  
+- Notes  
+
+---
+
+## Priority System
+
+| Priority | Description |
+|--------|------------|
+| HIGH | must-cite studies |
+| MEDIUM | high relevance (score ≥ 7) |
+| LOW | remaining records |
+
+---
+
+## Workflow Integration
+
+This script is used after screening:
+
+1. Data retrieval (WoS, Scopus)  
+2. Deduplication and cleaning  
+3. Screening and classification  
+4. **Data extraction preparation (this script)**  
+5. Manual full-text review  
+6. Final dataset construction  
+
+---
+
+## Notes
+
+- The refined dataset is intentionally smaller and prioritized for efficiency  
+- Review articles are excluded but retained separately  
+- Batch processing is essential for large datasets (>500 records)  
+- The script does not perform extraction itself  
+
+---
+
+## Requirements
+
+- Python 3.8+  
+- pandas  
+- openpyxl  
+
+Install dependencies:
+
+```bash
+pip install pandas openpyxl
