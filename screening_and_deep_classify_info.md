@@ -51,17 +51,18 @@ The following columns are added to the dataset:
 
 | Column | Description |
 |--------|------------|
-| `observation_method` | Detection of remote sensing |
-| `platform` | Platform type (UAV, satellite) |
+| `observation_method` | Detection of remote sensing (explicit or inferred from sensors) |
+| `platform` | Platform type (UAV, satellite; satellite also inferred from sensors) |
 | `sensor_type` | Identified sensors (e.g., MODIS, Landsat, Sentinel) |
 | `sensor_mode` | Sensor classification (active / passive) |
 | `application_domain` | Agricultural context (cropland, farmland, etc.) |
 | `methodology` | Application focus (e.g., irrigation, precision agriculture) |
 | `scaling` | Scaling approaches (e.g., downscaling, data fusion) |
-| `uav_applicability` | Potential applicability to UAV-based studies |
+| `uav_applicability` | Direct UAV usage (explicit UAV/drone presence) |
+| `uav_potential` | Potential UAV applicability (transferable satellite-based approaches) |
 | `publication_type_detail` | Publication type (e.g., review) |
 | `is_review` | Boolean flag for review articles |
-| `relevance_score` | Score (0–9) based on predefined criteria |
+| `relevance_score` | Score (0–8) based on predefined criteria |
 | `must_cite` | High-priority articles (subset of high relevance) |
 | `screening_decision` | Preliminary classification (include / maybe / exclude) |
 | `final_inclusion` | Manual decision (to be filled during review) |
@@ -70,11 +71,11 @@ The following columns are added to the dataset:
 
 ## Relevance Scoring
 
-The score (0–9) is based on the presence of key concepts:
+The score (0–8) is based on the presence of key concepts:
 
 - soil moisture (+2)  
-- remote sensing (+2)  
-- UAV-related terms (+2)  
+- direct UAV applicability (+3)  
+- potential UAV applicability (+2) (satellite + high-resolution / scaling / optical methods)
 - scaling approaches (+2)  
 - agricultural context (+1)  
 
@@ -82,18 +83,28 @@ The score (0–9) is based on the presence of key concepts:
 
 | Score | Interpretation |
 |------|---------------|
-| ≥7 | high relevance (*include*) |
-| 5–6 | moderate relevance (*maybe*) |
-| 3–4 | low relevance (*maybe*) |
+| ≥6 | high relevance (*include*) |
+| 3–5 | potential relevance (*maybe*) |
 | <3 | irrelevant (*exclude*) |
 
 ---
+## UAV Relevance Framework
 
+The script distinguishes two levels of UAV relevance:
+- Direct UAV applicability → explicit UAV / drone usage
+- Potential UAV applicability → satellite-based studies with transferable methodologies, e.g.:
+  - high-resolution analysis
+  - optical sensing
+  - scaling approaches (downscaling, data fusion)
+
+This distinction enables identification of methods that can be adapted to UAV-based workflows.
+
+---
 ## Must-Cite Identification
 
 Records are classified as *must-cite* if they meet stricter criteria:
 
-- relevance score ≥ 7  
+- relevance score ≥ 6
 - presence of scaling approaches  
 - and UAV-related or high-resolution applicability  
 
@@ -104,12 +115,10 @@ These records represent high-priority studies for detailed analysis.
 ## Review Article Handling
 
 Review articles are automatically identified using:
-
 - keyword matching (e.g., "review", "systematic review", "meta-analysis")  
 - metadata fields  
 
 These records are:
-
 - flagged (`is_review = True`)  
 - exported separately  
 - excluded from the main analytical dataset  
@@ -119,24 +128,20 @@ These records are:
 ## Output Files
 
 ### Main dataset
-
-- `screened_records.xlsx`  
-  → dataset enriched with screening variables (excluding review articles)
+- `screened_records.xlsx` → dataset enriched with screening variables (excluding review articles)
 
 ---
 
 ### Summary reports
 
-- `screening_summary.txt`  
-  → PRISMA-ready overview:
+- `screening_summary.txt` → PRISMA-ready overview:
   - total records  
   - review articles removed  
   - screening decisions (counts + %)  
   - must-cite count  
   - relevance score distribution  
 
-- `screening_summary.xlsx`  
-  → structured tables:
+- `screening_summary.xlsx` → structured tables:
   - screening decisions  
   - relevance score distribution  
   - must-cite counts  
@@ -145,13 +150,13 @@ These records are:
 
 ### Keyword statistics
 
-- `keyword_statistics.txt`  
-  → frequency of:
-  - core keywords (e.g., soil moisture, remote sensing)  
-  - platform terms (UAV, satellite)  
-  - sensors (MODIS, Landsat, Sentinel)  
-  - sensor modes (active, passive)  
-  - scaling approaches  
+- `keyword_statistics.txt` → frequency of:
+  - core keywords
+  - platform categories (UAV, satellite)
+  - sensors (MODIS, Landsat, Sentinel)
+  - sensor modes (active, passive)
+  - scaling approaches
+  - UAV relevance (direct vs potential)
 
 ---
 
