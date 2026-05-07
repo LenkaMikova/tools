@@ -134,7 +134,7 @@ This script performs semi-automated screening of bibliographic records based on:
 
 ## 4. Data Extraction Preparation
 
-[extraction_script.py](https://github.com/LenkaMikova/PRISMAtools/blob/main/extraction_script.py)
+[extraction_templ.py](https://github.com/LenkaMikova/PRISMAtools/blob/main/extraction_templ.py)
 
 Prepares structured datasets for manual data extraction from screened records.
 
