@@ -23,6 +23,7 @@ The tools are designed to be used sequentially:
 ## 1. Query Generator
 
 [WoS_Scopus_query.py](https://github.com/LenkaMikova/PRISMAtools/blob/main/WoS_Scopus_query.py)
+[Info](https://github.com/LenkaMikova/PRISMAtools/blob/main/WoS_Scopus_query_info.md)
 
 Generate structured search queries for:
 
@@ -53,6 +54,7 @@ Each group is entered as:
 ## 2. Bibliographic Processing (PRISMA)
 
 [merge_and_classify.py](https://github.com/LenkaMikova/PRISMAtools/blob/main/merge_and_classify.py)
+[Info](https://github.com/LenkaMikova/PRISMAtools/blob/main/merge_and_classify_info.md)
 
 Script for merging, cleaning, and classifying RIS exports from:
 
@@ -93,6 +95,7 @@ Script for merging, cleaning, and classifying RIS exports from:
 ## 3. Screening and Initial Classification
 
 [screening_and_deep_classify.py](https://github.com/LenkaMikova/PRISMAtools/blob/main/screening_and_deep_classify.py)
+[Info](https://github.com/LenkaMikova/PRISMAtools/blob/main/screening_and_deep_classify_info.md)
 
 This script performs semi-automated screening of bibliographic records based on:
 
@@ -123,7 +126,7 @@ This script performs semi-automated screening of bibliographic records based on:
   - `maybe` (uncertain relevance)  
   - `exclude` (low relevance)  
 - flags *must-cite* studies (high priority)
-
+(https://github.com/LenkaMikova/PRISMAtools/blob/main/screening_and_deep_classify.py)
 ### Notes
 
 - Screening is intentionally **inclusive**  
@@ -135,6 +138,7 @@ This script performs semi-automated screening of bibliographic records based on:
 ## 4. Data Extraction Preparation
 
 [extraction_templ.py](https://github.com/LenkaMikova/PRISMAtools/blob/main/extraction_templ.py)
+[Info](https://github.com/LenkaMikova/PRISMAtools/blob/main/extraction_templ_info.md)
 
 Prepares structured datasets for manual data extraction from screened records.
 
