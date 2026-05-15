@@ -55,9 +55,11 @@ Optional (pre-filled from screening): `platform`, `sensor_type`, `sensor_mode`, 
 
 **Auto-filled:** ID, Title, Year, DOI, Priority, Batch, Platform, Sensor_type, Sensor_mode, Application_domain, Scaling_type, UAV_applicable  
 
-**Manual (empty):** Study_area, Country, Method_type, Model_name, Spatial_resolution, Temporal_resolution, Validation_method, RMSE, R2, Include_final, Notes  
+**Manual (empty):** Zotero_key, Study_area, Country, Method_type, Model_name, Spatial_resolution, Temporal_resolution, Validation_method, RMSE, R2, Include_final, Notes  
 
-Use `Notes` for full-text observations; link to Zotero via DOI or a shared `ID` column if you maintain both.
+**Zotero_key:** citation key (Better BibTeX) or item key from Zotero (e.g. `AB12CD34`) — links the row to your library entry and notes. Fill after import or when starting full-text review.
+
+Use `Notes` for extraction observations; keep long-form notes in Zotero if preferred, with a short summary in `Notes`.
 
 ---
 

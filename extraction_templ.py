@@ -168,6 +168,9 @@ def build_template(df):
     out["Title"] = df["TI"]
     out["Year"] = df["PY"]
     out["DOI"] = df["DO"]
+    # Paste from Zotero: right-click item → Better BibTeX → Copy citation key
+    # or Zotero URI: zotero://select/library/items/<ITEM_KEY>
+    out["Zotero_key"] = ""
 
     out["Priority"] = df["priority"]
     out["Batch"] = df.get("batch","")
