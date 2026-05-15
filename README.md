@@ -11,6 +11,24 @@ Scripts expect a **review project folder** with numbered subdirectories (`00 sea
 
 Detailed documentation: `*_info.md` next to each script.
 
+### Local runner (menu)
+
+```bash
+pip install -r requirements.txt
+python review_runner.py
+```
+
+Runs each pipeline step, opens data folders, or installs dependencies.
+
+### Zotero sync
+
+```bash
+cp zotero_config.example.json zotero_config.json   # edit API key + library ID
+python zotero_sync.py
+```
+
+Fills `Zotero_key` and `Notes` in extraction Excel from Zotero (not available in standard `.bib`). See [zotero_sync_info.md](zotero_sync_info.md).
+
 ---
 
 ## Workflow Overview
@@ -77,6 +95,17 @@ Screening is **inclusive** (sensitivity over specificity); manual full-text revi
 
 - Priority HIGH / MEDIUM / LOW  
 - Pre-filled metadata; manual fields for full-text extraction  
+- `Zotero_key` + `Notes` (manual or via `zotero_sync.py`)  
+
+---
+
+## Requirements
+
+```bash
+pip install -r requirements.txt
+```
+
+(`pandas`, `openpyxl`, `pyzotero` for Zotero sync)
 
 ---
 
