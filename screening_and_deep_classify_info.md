@@ -2,200 +2,139 @@
 
 [Python script](https://github.com/LenkaMikova/PRISMAtools/blob/main/screening_and_deep_classify.py) performs semi-automated screening and classification of bibliographic records based on title, abstract, and keywords.
 
-The script is designed to support the initial stage of systematic reviews by providing structured categorization, relevance assessment, and prioritization of records.
+Designed to support the initial stage of systematic reviews: structured categorization, relevance assessment, and prioritization. **Does not replace manual full-text review.**
 
 ---
 
-## Purpose
+## Project layout
 
-The script assists in:
+Paths are resolved relative to the parent of the script folder (see `merge_and_clssify_info.md`).
 
-- rapid identification of potentially relevant studies  
-- preliminary thematic categorization  
-- prioritization of key papers (*must-cite*)  
-- supporting manual screening decisions  
-
-The output is not intended to replace manual review but to guide and accelerate the screening process.
-
----
-
-## Input Data
-
-The script expects:
-
-- `clean_records.xlsx`
-
-This dataset should contain bibliographic records with at least:
-
-- `TI` (Title)  
-- `AB` (Abstract)  
-- `KW` (Keywords)  
+| Path | Role |
+|------|------|
+| `20 data_clean/clean_records.xlsx` | Input |
+| `30 screening/31 dataset/screened_records.xlsx` | Main output |
+| `30 screening/32 exports/` | RIS subsets for Zotero |
+| `30 screening/33 reports/` | Text and Excel summaries |
+| `30 screening/34 reviews/` | Separated review articles |
 
 ---
 
-## Processing Overview
+## Input
 
-Each record is analyzed using rule-based keyword matching applied to:
-
-- title  
-- abstract  
-- keywords  
-
-The script assigns thematic categories, detects review articles, and computes a relevance score.
+- `clean_records.xlsx` with at least `TI`, `AB`, `KW` (and optionally `M3` for publication type)
 
 ---
 
 ## Generated Variables
 
-The following columns are added to the dataset:
-
 | Column | Description |
-|--------|------------|
-| `observation_method` | Detection of remote sensing (explicit or inferred from sensors) |
-| `platform` | Platform type (UAV, satellite; satellite also inferred from sensors) |
-| `sensor_type` | Identified sensors (e.g., MODIS, Landsat, Sentinel) |
-| `sensor_mode` | Sensor classification (active / passive) |
-| `application_domain` | Agricultural context (cropland, farmland, etc.) |
-| `methodology` | Application focus (e.g., irrigation, precision agriculture) |
-| `scaling` | Scaling approaches (e.g., downscaling, data fusion) |
-| `uav_applicability` | Direct UAV usage (explicit UAV/drone presence) |
-| `uav_potential` | Potential UAV applicability (transferable satellite-based approaches) |
-| `publication_type_detail` | Publication type (e.g., review) |
-| `is_review` | Boolean flag for review articles |
-| `relevance_score` | Score (0–8) based on predefined criteria |
-| `must_cite` | High-priority articles (subset of high relevance) |
-| `screening_decision` | Preliminary classification (include / maybe / exclude) |
-| `final_inclusion` | Manual decision (to be filled during review) |
+|--------|-------------|
+| `observation_method` | Remote sensing detected (explicit or via sensors) |
+| `platform` | `UAV`, `satellite` (satellite also inferred from sensor names) |
+| `sensor_type` | e.g. MODIS, Landsat, Sentinel |
+| `sensor_mode` | `active` / `passive` |
+| `application_domain` | Agricultural context keywords |
+| `methodology` | e.g. irrigation, precision agriculture |
+| `scaling` | downscaling, data fusion, multi-scale |
+| `uav_applicability` | Direct UAV/drone usage (boolean) |
+| `uav_potential` | Transferable satellite-based applicability (boolean) |
+| `uav_relevance` | `direct` / `transferable` / `none` |
+| `is_review` | Review article flag |
+| `relevance_score` | Integer 0–8 |
+| `must_cite` | Extended high-priority flag |
+| `must_cite_strict` | Core high-priority flag (direct UAV + scaling, score ≥ 7) |
+| `screening_decision` | `include` / `maybe` / `exclude` |
 
 ---
 
-## Relevance Scoring
+## Relevance Scoring (0–8)
 
-The score (0–8) is based on the presence of key concepts:
+| Component | Points |
+|-----------|--------|
+| soil moisture in text | +2 |
+| direct UAV (UAV, drone, UAS) | +3 |
+| scaling terms (downscaling, data fusion, multi-scale) | +2 |
+| agricultural domain terms | +1 |
 
-- soil moisture (+2)  
-- direct UAV applicability (+3)  
-- potential UAV applicability (+2) (satellite + high-resolution / scaling / optical methods)
-- scaling approaches (+2)  
-- agricultural context (+1)  
+**Potential UAV** is tracked separately (`uav_potential`) and used for must-cite and exports; it does **not** add score points.
 
-### Score Interpretation
+### Screening decision
 
-| Score | Interpretation |
-|------|---------------|
-| ≥6 | high relevance (*include*) |
-| 3–5 | potential relevance (*maybe*) |
-| <3 | irrelevant (*exclude*) |
+| Score | Decision |
+|-------|----------|
+| ≥ 6 | `include` |
+| 3–5 | `maybe` |
+| < 3 | `exclude` |
 
 ---
+
 ## UAV Relevance Framework
 
-The script distinguishes two levels of UAV relevance:
-- Direct UAV applicability → explicit UAV / drone usage
-- Potential UAV applicability → satellite-based studies with transferable methodologies, e.g.:
-  - high-resolution analysis
-  - optical sensing
-  - scaling approaches (downscaling, data fusion)
+- **Direct** — explicit UAV / drone / UAS terminology  
+- **Potential (transferable)** — satellite platform plus high-resolution, scaling, or passive/optical sensing terms  
 
-This distinction enables identification of methods that can be adapted to UAV-based workflows.
-
----
-## Must-Cite Identification
-
-Records are classified as *must-cite* if they meet stricter criteria:
-
-- relevance score ≥ 6
-- presence of scaling approaches  
-- and UAV-related or high-resolution applicability  
-
-These records represent high-priority studies for detailed analysis.
+Enables separation of direct UAV evidence from satellite methods adaptable to UAV workflows.
 
 ---
 
-## Review Article Handling
+## Must-Cite (two tiers)
 
-Review articles are automatically identified using:
-- keyword matching (e.g., "review", "systematic review", "meta-analysis")  
-- metadata fields  
+**Extended (`must_cite`)** — score ≥ 6 and either:
 
-These records are:
-- flagged (`is_review = True`)  
-- exported separately  
-- excluded from the main analytical dataset  
+- direct UAV + scaling, or  
+- potential UAV + (scaling or passive sensing)
+
+**Strict / core (`must_cite_strict`)** — score ≥ 7, direct UAV, and scaling  
+
+RIS exports:
+
+- `core_studies.ris` → `must_cite_strict`  
+- `transferable_studies.ris` → `must_cite` and not strict  
+- `include_records.ris` → `screening_decision == include`  
+- `all_records.ris` → all non-review records  
+
+Optional: `review_articles_uav.ris` when `SAVE_UAV_REVIEWS = True`.
+
+---
+
+## Review Articles
+
+Identified by review-related keywords and `M3` metadata. Excluded from `screened_records.xlsx`; saved under `34 reviews/`.
 
 ---
 
 ## Output Files
 
-### Main dataset
-- `screened_records.xlsx` → dataset enriched with screening variables (excluding review articles)
+### Dataset
+
+- `screened_records.xlsx` — non-review records with all variables  
+
+### Reports
+
+- `screening_summary.txt` — counts, screening decisions (%), must-cite totals  
+- `screening_summary.xlsx` — sheets: decisions, score distribution, must-cite counts  
+- `keyword_statistics.txt` — platform, scaling, UAV applicability, sensors, domains  
+
+### Reviews
+
+- `review_articles.xlsx`, `review_articles.ris`  
+- `review_articles_uav.ris` (optional)  
 
 ---
 
-### Summary reports
+## Workflow position
 
-- `screening_summary.txt` → PRISMA-ready overview:
-  - total records  
-  - review articles removed  
-  - screening decisions (counts + %)  
-  - must-cite count  
-  - relevance score distribution  
-
-- `screening_summary.xlsx` → structured tables:
-  - screening decisions  
-  - relevance score distribution  
-  - must-cite counts  
-
----
-
-### Keyword statistics
-
-- `keyword_statistics.txt` → frequency of:
-  - core keywords
-  - platform categories (UAV, satellite)
-  - sensors (MODIS, Landsat, Sentinel)
-  - sensor modes (active, passive)
-  - scaling approaches
-  - UAV relevance (direct vs potential)
-
----
-
-### Review dataset
-
-- `review_articles.xlsx`  
-- `review_articles.ris`  
-
----
-
-## Workflow Integration
-
-This script represents an intermediate step in the systematic review pipeline:
-
-1. Data retrieval (WoS, Scopus)  
-2. Deduplication and cleaning  
-3. **Initial screening (this script)**  
+1. Query generation  
+2. Merge and classify (this script’s prerequisite)  
+3. **Screening (this script)**  
 4. Data extraction preparation  
 5. Manual full-text review  
-6. Final study selection  
-
----
-
-## Notes
-
-- The script relies on keyword-based matching and may not capture all relevant studies  
-- Results must be verified manually  
-- Screening is intentionally **inclusive**  
-- The `final_inclusion` column is used for manual decision tracking  
 
 ---
 
 ## Requirements
 
-- Python 3.8+  
-- pandas  
-- openpyxl  
-
-Install dependencies:
-
 ```bash
 pip install pandas openpyxl
+```

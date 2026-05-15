@@ -1,6 +1,6 @@
 # Bibliographic Data Processing for Systematic Review (PRISMA)
 
-[Python script](https://github.com/LenkaMikova/tools/blob/main/merge_and_classify.py) for merging, cleaning, and classifying bibliographic records exported from Web of Science and Scopus.
+[Python script](https://github.com/LenkaMikova/PRISMAtools/blob/main/merge_and_classify.py) for merging, cleaning, and classifying bibliographic records exported from Web of Science and Scopus.
 
 ---
 
@@ -14,47 +14,41 @@ This script supports systematic literature reviews conducted in accordance with 
 
 ---
 
-## Input Data
+## Project layout
 
-The script expects two RIS files:
+The script resolves paths relative to the **parent folder of the script directory** (e.g. if the script lives in `70 scripts/`, the project root is the review folder one level up).
+
+Expected structure:
+
+| Path | Role |
+|------|------|
+| `10 data_raw/12 final/export_Scopus.ris` | Scopus export |
+| `10 data_raw/12 final/export_WoS.ris` | Web of Science export |
+| `20 data_clean/` | Clean datasets |
+| `20 data_clean/21 audit/` | Audit trail and PRISMA counts |
+
+Place the script in a subfolder of your review project (e.g. `tools/` or `70 scripts/`), not in the repository root alone.
+
+---
+
+## Input Data
 
 - `export_Scopus.ris`  
 - `export_WoS.ris`  
 
-These files should be exported directly from:
-
-- Web of Science  
-- Scopus  
-
-Only standardized input files (e.g., cleaned exports) should be used for processing.
+Exported directly from Web of Science and Scopus (RIS format).
 
 ---
 
 ## Processing Workflow
 
-The script performs the following steps:
-
-1. **RIS parsing**  
-   Converts RIS files into structured tabular format  
-
-2. **Dataset merging**  
-   Combines records from both databases into a single dataset  
-
-3. **Record classification**  
-   Assigns status labels based on metadata quality, publication type, and duplication  
-
-4. **Duplicate detection**  
-   - DOI-based matching  
-   - Title–year matching  
-
-5. **Data validation**  
-   Identifies incomplete or inconsistent records  
-
-6. **Dataset filtering**  
-   Creates a clean dataset containing only valid records  
-
-7. **Reporting and audit trail**  
-   Generates diagnostic files and summary statistics  
+1. **RIS parsing** — converts RIS files into tabular format  
+2. **Dataset merging** — combines both databases  
+3. **Record classification** — status labels by metadata quality and type  
+4. **Duplicate detection** — DOI matching and title–year matching  
+5. **Data validation** — incomplete or inconsistent records flagged  
+6. **Dataset filtering** — clean dataset with `correct_record` only  
+7. **Reporting** — diagnostic files and PRISMA-ready summaries  
 
 ---
 
@@ -62,74 +56,45 @@ The script performs the following steps:
 
 ### Main datasets
 
-- `all_records_with_status.xlsx`  
-  Complete dataset including:
-  - classification status  
-  - exclusion reasons  
-
-- `clean_records.xlsx` / `clean_records.csv`  
-  Filtered dataset containing only records classified as `correct_record`  
-  → used as input for screening  
-
-- `clean_records.ris`  
-  Clean dataset for import into reference managers (e.g., Zotero)  
-
----
+- `20 data_clean/clean_records.xlsx` / `.csv` — records with status `correct_record` (input for screening)  
+- `20 data_clean/clean_records.ris` — import into Zotero or other reference managers  
+- `20 data_clean/21 audit/all_records_with_status.xlsx` — full dataset with status and exclusion reasons  
 
 ### Diagnostics (manual validation)
 
-- `duplicates_doi.xlsx`  
-  Records sharing identical DOI (all duplicates retained for inspection)  
-
-- `duplicates_title.xlsx`  
-  Potential duplicates based on title and publication year  
-
-- `missing_doi.xlsx`  
-  Records without DOI  
-
----
+- `20 data_clean/21 audit/duplicates_doi.xlsx`  
+- `20 data_clean/21 audit/duplicates_title.xlsx`  
+- `20 data_clean/21 audit/missing_doi.xlsx`  
 
 ### Reporting
 
-- `processing_report.txt`  
-  Detailed summary of:
-  - input counts  
-  - classification results  
-  - final dataset size  
-
-- `prisma_counts.csv`  
-  Counts of records by classification status  
-  → directly usable for PRISMA flow diagram  
+- `20 data_clean/21 audit/processing_report.txt` — input counts, classification, retained/removed  
+- `20 data_clean/21 audit/prisma_counts.csv` — counts by status (for PRISMA diagram)  
 
 ---
 
 ## Record Classification
 
-Each record is assigned:
+Each record receives `status` and `exclusion_reason`.
 
-- `status`  
-- `exclusion_reason`  
-
-### Status Categories
-
-- `correct_record` → valid record retained for analysis  
-- `duplicate_doi` → duplicate based on DOI  
-- `duplicate_title` → duplicate based on title + year  
-- `missing_doi` → DOI not available  
-- `incomplete_record` → missing key metadata (e.g., title or year)  
-- `non_article_type` → non-research publication (e.g., conference abstract)  
-- `outside_scope` → optional manual classification  
+| Status | Meaning |
+|--------|---------|
+| `correct_record` | Valid record retained for screening |
+| `duplicate_doi` | Duplicate based on DOI |
+| `duplicate_title` | Duplicate based on title + year |
+| `missing_doi` | DOI not available (retained if otherwise valid) |
+| `incomplete_record` | Missing key metadata (e.g. title or year) |
+| `non_article_type` | Non-research publication |
+| `outside_scope` | Optional manual classification |
 
 ---
 
 ## PRISMA Compliance
 
-The script supports PRISMA-compliant workflows by:
-
-- preserving all records (no data loss)  
-- documenting exclusion reasons  
-- enabling full reproducibility  
-- generating structured outputs for PRISMA reporting  
+- All records preserved (no silent deletion)  
+- Exclusion reasons documented  
+- Reproducible, auditable workflow  
+- Structured outputs for PRISMA reporting  
 
 ---
 
@@ -139,7 +104,6 @@ The script supports PRISMA-compliant workflows by:
 - pandas  
 - openpyxl  
 
-Install dependencies:
-
 ```bash
 pip install pandas openpyxl
+```

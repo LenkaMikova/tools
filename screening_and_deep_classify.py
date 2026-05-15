@@ -1,9 +1,21 @@
+# ============================================
+# SCREENING AND CLASSIFICATION SCRIPT
+# ============================================
+
+# ============================================
+# IMPORTS
+# ============================================
 import pandas as pd
 import os
 
-# =========================
-# PROJECT PATHS
-# =========================
+# ============================================
+# CONFIG
+# ============================================
+SAVE_UAV_REVIEWS = True
+
+# ============================================
+# PATHS
+# ============================================
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 input_file = os.path.join(project_root, "20 data_clean", "clean_records.xlsx")
@@ -15,19 +27,12 @@ exports_dir = os.path.join(output_dir, "32 exports")
 reports_dir = os.path.join(output_dir, "33 reports")
 review_dir = os.path.join(output_dir, "34 reviews")
 
-os.makedirs(dataset_dir, exist_ok=True)
-os.makedirs(exports_dir, exist_ok=True)
-os.makedirs(reports_dir, exist_ok=True)
-os.makedirs(review_dir, exist_ok=True)
+for d in [dataset_dir, exports_dir, reports_dir, review_dir]:
+    os.makedirs(d, exist_ok=True)
 
-# =========================
-# LOAD DATA
-# =========================
-df = pd.read_excel(input_file)
-
-# =========================
+# ============================================
 # KEYWORDS
-# =========================
+# ============================================
 OBS_METHOD = ["remote sensing"]
 UAV_TERMS = ["uav", "drone", "uas"]
 SAT_TERMS = ["satellite"]
@@ -44,15 +49,15 @@ SCALING = ["downscaling", "data fusion", "multi-scale"]
 HIGH_RES = ["high resolution", "fine resolution"]
 REVIEW_TERMS = ["review", "systematic review", "meta-analysis"]
 
-# =========================
-# HELPER
-# =========================
+# ============================================
+# HELPERS
+# ============================================
 def contains_any(text, keywords):
     return any(k in text for k in keywords)
 
-# =========================
-# ANALYSIS FUNCTION
-# =========================
+# ============================================
+# ANALYSIS
+# ============================================
 def analyze_row(row):
 
     text = " ".join([
@@ -62,28 +67,30 @@ def analyze_row(row):
     ]).lower()
 
     text = " ".join(text.split())
-
     result = {}
 
-    # REVIEW DETECTION
-    is_review = (
+    # REVIEW
+    result["is_review"] = (
         contains_any(text, REVIEW_TERMS) or
         "review" in str(row.get("M3", "")).lower()
     )
-    result["is_review"] = is_review
 
-    # BASIC TAGGING
-    result["observation_method"] = "RS" if contains_any(text, OBS_METHOD) else ""
+    # SENSOR
+    sensors_found = [s for s in SENSORS if s in text]
+    result["sensor_type"] = ", ".join(sensors_found)
 
+    # PLATFORM
     platform = []
     if contains_any(text, UAV_TERMS):
         platform.append("UAV")
-    if contains_any(text, SAT_TERMS):
+    if contains_any(text, SAT_TERMS) or sensors_found:
         platform.append("satellite")
-    result["platform"] = ", ".join(platform)
+    result["platform"] = ", ".join(sorted(set(platform)))
 
-    result["sensor_type"] = ", ".join([s for s in SENSORS if s in text])
+    # OBS METHOD
+    result["observation_method"] = "RS" if (contains_any(text, OBS_METHOD) or sensors_found) else ""
 
+    # SENSOR MODE
     sensor_mode = []
     if contains_any(text, ACTIVE):
         sensor_mode.append("active")
@@ -91,32 +98,67 @@ def analyze_row(row):
         sensor_mode.append("passive")
     result["sensor_mode"] = ", ".join(sensor_mode)
 
+    # DOMAIN / METHODS
     result["application_domain"] = ", ".join([d for d in DOMAIN if d in text])
     result["methodology"] = ", ".join([m for m in METHODS if m in text])
     result["scaling"] = ", ".join([s for s in SCALING if s in text])
 
-    uav_applicable = contains_any(text, UAV_TERMS)
-    result["uav_applicability"] = uav_applicable
+    # UAV LOGIC
+    uav_direct = contains_any(text, UAV_TERMS)
+
+    uav_potential = (
+        ("satellite" in result["platform"]) and
+        (
+            contains_any(text, HIGH_RES) or
+            contains_any(text, SCALING) or
+            contains_any(text, PASSIVE)
+        )
+    )
+
+    result["uav_applicability"] = uav_direct
+    result["uav_potential"] = uav_potential
+    result["uav_relevance"] = (
+        "direct" if uav_direct else
+        "transferable" if uav_potential else
+        "none"
+    )
 
     # SCORE
     score = 0
     if "soil moisture" in text: score += 2
-    if "remote sensing" in text: score += 2
-    if uav_applicable: score += 2
+    if uav_direct: score += 3
     if contains_any(text, SCALING): score += 2
     if contains_any(text, DOMAIN): score += 1
 
     result["relevance_score"] = score
 
-    # MUST CITE
+    # MUST-CITE EXTENDED
     result["must_cite"] = (
-        score >= 7 and
-        contains_any(text, SCALING) and
-        (uav_applicable or contains_any(text, HIGH_RES))
+        # 1. core UAV studies
+        (
+            score >= 6
+            and uav_direct
+            and contains_any(text, SCALING)
+        )
+        or
+        # 2. high-quality transferable
+        (
+            score >= 6
+            and uav_potential
+            and (
+                contains_any(text, SCALING)
+                or contains_any(text, PASSIVE)
+            )
+        )
+    )
+
+    # MUST-CITE STRICT
+    result["must_cite_strict"] = (
+        score >= 7 and uav_direct and contains_any(text, SCALING)
     )
 
     # DECISION
-    if score >= 7:
+    if score >= 6:
         decision = "include"
     elif score >= 3:
         decision = "maybe"
@@ -127,85 +169,55 @@ def analyze_row(row):
 
     return pd.Series(result)
 
-# =========================
-# APPLY
-# =========================
-df_analysis = df.apply(analyze_row, axis=1)
-df_all = pd.concat([df, df_analysis], axis=1)
+# ============================================
+# REPORT TXT
+# ============================================
+def generate_summary(df, df_reviews, df_reviews_uav):
 
-# =========================
-# SPLIT REVIEWS
-# =========================
-df_reviews = df_all[df_all["is_review"] == True].copy()
-df_main = df_all[df_all["is_review"] == False].copy()
+    path = os.path.join(reports_dir, "screening_summary.txt")
 
-# =========================
-# OUTPUT PATHS
-# =========================
-dataset_file = os.path.join(dataset_dir, "screened_records.xlsx")
+    total = len(df)
 
-summary_txt = os.path.join(reports_dir, "screening_summary.txt")
-summary_xlsx = os.path.join(reports_dir, "screening_summary.xlsx")
-keywords_txt = os.path.join(reports_dir, "keyword_statistics.txt")
+    include = (df["screening_decision"] == "include").sum()
+    maybe = (df["screening_decision"] == "maybe").sum()
+    exclude = (df["screening_decision"] == "exclude").sum()
 
-review_excel = os.path.join(review_dir, "review_articles.xlsx")
-
-# =========================
-# SUMMARY TXT
-# =========================
-def generate_summary_report(df, df_reviews):
-
-    total_screened = len(df) + len(df_reviews)
-    counts = df["screening_decision"].value_counts().reindex(
-        ["include", "maybe", "exclude"], fill_value=0
-    )
-
-    include = counts["include"]
-    maybe = counts["maybe"]
-    exclude = counts["exclude"]
-
-    with open(summary_txt, "w", encoding="utf-8") as f:
+    with open(path, "w", encoding="utf-8") as f:
 
         f.write("=== SCREENING SUMMARY (PRISMA READY) ===\n\n")
 
-        # SCREENING BASE
-        f.write("SCREENING:\n")
-        f.write(f"Records screened: {total_screened}\n")
+        f.write(f"Records (non-review): {total}\n")
         f.write(f"Review articles: {len(df_reviews)}\n")
-        f.write(f"Records analyzed (non-review): {len(df)}\n\n")
+        f.write(f"UAV-related reviews: {len(df_reviews_uav)}\n\n")
 
-        # DECISIONS
         f.write("SCREENING DECISIONS:\n")
-        f.write(f"Include: {include} ({include/len(df)*100:.1f}%)\n")
-        f.write(f"Maybe: {maybe} ({maybe/len(df)*100:.1f}%)\n")
-        f.write(f"Exclude: {exclude} ({exclude/len(df)*100:.1f}%)\n\n")
+        f.write(f"Include: {include} ({include/total*100:.1f}%)\n")
+        f.write(f"Maybe: {maybe} ({maybe/total*100:.1f}%)\n")
+        f.write(f"Exclude: {exclude} ({exclude/total*100:.1f}%)\n\n")
 
-        # PRIORITY
         f.write("PRIORITIZATION:\n")
-        f.write(f"Must-cite: {df['must_cite'].sum()}\n")
-        f.write(f"High relevance (score ≥7): {(df['relevance_score']>=7).sum()}\n\n")
+        f.write(f"Must-cite (extended): {df['must_cite'].sum()}\n")
+        f.write(f"Must-cite (strict): {df['must_cite_strict'].sum()}\n")
 
-        # NOTE
-        f.write("NOTE:\n")
-        f.write("Review articles were excluded from extraction but retained separately.\n")
-
-# =========================
-# SUMMARY EXCEL
-# =========================
+# ============================================
+# REPORT EXCEL
+# ============================================
 def generate_summary_excel(df):
 
-    with pd.ExcelWriter(summary_xlsx, engine="openpyxl", mode="w") as writer:
+    path = os.path.join(reports_dir, "screening_summary.xlsx")
+
+    with pd.ExcelWriter(path, engine="openpyxl") as writer:
 
         total = len(df)
 
-        dec = df["screening_decision"].value_counts().reindex(
+        decision = df["screening_decision"].value_counts().reindex(
             ["include", "maybe", "exclude"], fill_value=0
         ).reset_index()
 
-        dec.columns = ["decision", "count"]
-        dec["percentage"] = (dec["count"] / total) * 100
+        decision.columns = ["decision", "count"]
+        decision["percentage"] = (decision["count"] / total) * 100
 
-        dec.to_excel(writer, sheet_name="decision", index=False)
+        decision.to_excel(writer, sheet_name="decisions", index=False)
 
         df["relevance_score"].value_counts().sort_index().to_excel(
             writer, sheet_name="score"
@@ -215,129 +227,58 @@ def generate_summary_excel(df):
             writer, sheet_name="must_cite"
         )
 
-    print("Updated:", summary_xlsx)
+        df["must_cite_strict"].value_counts().to_excel(
+            writer, sheet_name="must_cite_strict"
+        )
 
-# =========================
-# KEYWORD STATS
-# =========================
+# ============================================
+# KEYWORD STATISTICS
+# ============================================
 def generate_keyword_statistics(df):
 
-    combined_text = (
-        df["TI"].fillna("") + " " +
-        df["AB"].fillna("") + " " +
-        df["KW"].fillna("")
-    ).str.lower()
+    path = os.path.join(reports_dir, "keyword_statistics.txt")
 
-    with open(keywords_txt, "w", encoding="utf-8") as f:
+    with open(path, "w", encoding="utf-8") as f:
 
         f.write("=== KEYWORD & CATEGORY STATISTICS ===\n\n")
+        f.write(f"Total records: {len(df)}\n\n")
 
-        total = len(df)
-        f.write(f"Total records: {total}\n\n")
+        # PLATFORM
+        f.write("PLATFORM:\n")
+        f.write(f"UAV: {df['platform'].str.contains('uav', case=False).sum()}\n")
+        f.write(f"Satellite: {df['platform'].str.contains('satellite', case=False).sum()}\n\n")
 
-        # =========================
-        # KEYWORD FREQUENCY
-        # =========================
-        f.write("KEYWORD FREQUENCY:\n\n")
-
-        def count_keywords(name, keywords):
-            f.write(f"{name}:\n")
-            for kw in keywords:
-                count = combined_text.str.contains(kw, regex=False, na=False).sum()
-                f.write(f"{kw}: {count}\n")
-            f.write("\n")
-
-        count_keywords("OBS_METHOD", OBS_METHOD)
-        count_keywords("UAV_TERMS", UAV_TERMS)
-        count_keywords("SAT_TERMS", SAT_TERMS)
-        count_keywords("SCALING", SCALING)
-
-        # =========================
-        # PLATFORM (parsed field)
-        # =========================
-        f.write("PLATFORM (parsed):\n")
-
-        uav_count = df["platform"].str.contains("uav", case=False, na=False).sum()
-        sat_count = df["platform"].str.contains("satellite", case=False, na=False).sum()
-
-        f.write(f"UAV: {uav_count}\n")
-        f.write(f"Satellite: {sat_count}\n\n")
-
-        # =========================
-        # SENSOR TYPE
-        # =========================
-        f.write("SENSOR TYPE:\n")
-
-        for sensor in SENSORS:
-            count = df["sensor_type"].str.contains(sensor, case=False, na=False).sum()
-            f.write(f"{sensor}: {count}\n")
-
-        other_sensor = df["sensor_type"].eq("").sum()
-        f.write(f"unspecified: {other_sensor}\n\n")
-
-        # =========================
-        # SENSOR MODE
-        # =========================
-        f.write("SENSOR MODE:\n")
-
-        active = df["sensor_mode"].str.contains("active", na=False).sum()
-        passive = df["sensor_mode"].str.contains("passive", na=False).sum()
-        none = df["sensor_mode"].eq("").sum()
-
-        f.write(f"active: {active}\n")
-        f.write(f"passive: {passive}\n")
-        f.write(f"unspecified: {none}\n\n")
-
-        # =========================
-        # DOMAIN
-        # =========================
-        f.write("APPLICATION DOMAIN:\n")
-
-        for d in DOMAIN:
-            count = df["application_domain"].str.contains(d, case=False, na=False).sum()
-            f.write(f"{d}: {count}\n")
-        f.write("\n")
-
-        # =========================
-        # METHODS
-        # =========================
-        f.write("METHODS:\n")
-
-        for m in METHODS:
-            count = df["methodology"].str.contains(m, case=False, na=False).sum()
-            f.write(f"{m}: {count}\n")
-        f.write("\n")
-
-        # =========================
-        # SCALING (parsed)
-        # =========================
-        f.write("SCALING (parsed field):\n")
-
+        # SCALING
+        f.write("SCALING:\n")
         for s in SCALING:
-            count = df["scaling"].str.contains(s, case=False, na=False).sum()
-            f.write(f"{s}: {count}\n")
+            f.write(f"{s}: {df['scaling'].str.contains(s, case=False).sum()}\n")
+        f.write("\n")
 
-        no_scaling = df["scaling"].eq("").sum()
-        f.write(f"none: {no_scaling}\n\n")
-
-        # =========================
         # UAV APPLICABILITY
-        # =========================
         f.write("UAV APPLICABILITY:\n")
+        direct = df["uav_applicability"].sum()
+        potential = df["uav_potential"].sum()
+        combined = ((df["uav_applicability"]) | (df["uav_potential"])).sum()
 
-        true_count = df["uav_applicability"].sum()
-        false_count = len(df) - true_count
+        f.write(f"Direct UAV: {direct}\n")
+        f.write(f"Potential UAV: {potential}\n")
+        f.write(f"Combined: {combined}\n")
+        f.write(f"Non-UAV: {len(df) - combined}\n")
 
-        f.write(f"True: {true_count}\n")
-        f.write(f"False: {false_count}\n\n")
+        # SENSOR MODE
+        f.write("\nSENSOR MODE:\n")
+        f.write(f"Active: {df['sensor_mode'].str.contains('active', na=False).sum()}\n")
+        f.write(f"Passive: {df['sensor_mode'].str.contains('passive', na=False).sum()}\n")
 
-    print("Updated:", keywords_txt)
+        # DOMAIN
+        f.write("\nDOMAIN:\n")
+        for d in DOMAIN:
+            f.write(f"{d}: {df['application_domain'].str.contains(d, case=False, na=False).sum()}\n")
 
-# =========================
+# ============================================
 # RIS EXPORT
-# =========================
+# ============================================
 def export_ris(df, path):
-
     with open(path, "w", encoding="utf-8") as f:
         for _, row in df.iterrows():
             f.write("TY  - JOUR\n")
@@ -346,22 +287,31 @@ def export_ris(df, path):
                     f.write(f"{col}  - {val}\n")
             f.write("ER  - \n\n")
 
-# =========================
-# RUN
-# =========================
-if __name__ == "__main__":
+# ============================================
+# MAIN
+# ============================================
+def main():
 
-    print("Saving to:")
-    print(dataset_file)
-    print(summary_xlsx)
-    print(keywords_txt)
+    df = pd.read_excel(input_file)
 
-    # SAVE DATA
-    df_main.to_excel(dataset_file, index=False)
-    df_reviews.to_excel(review_excel, index=False)
+    df_analysis = df.apply(analyze_row, axis=1)
+    df_all = pd.concat([df, df_analysis], axis=1)
+
+    df_reviews = df_all[df_all["is_review"]]
+    df_main = df_all[~df_all["is_review"]]
+
+    df_reviews_uav = df_reviews[
+        (df_reviews["uav_applicability"]) |
+        (df_reviews["uav_potential"])
+    ]
+
+    # SAVE
+    dataset_path = os.path.join(dataset_dir, "screened_records.xlsx")
+    df_main.to_excel(dataset_path, index=False)
+    df_reviews.to_excel(os.path.join(review_dir, "review_articles.xlsx"), index=False)
 
     # REPORTS
-    generate_summary_report(df_main, df_reviews)
+    generate_summary(df_main, df_reviews, df_reviews_uav)
     generate_summary_excel(df_main)
     generate_keyword_statistics(df_main)
 
@@ -369,9 +319,49 @@ if __name__ == "__main__":
     export_ris(df_main, os.path.join(exports_dir, "all_records.ris"))
     export_ris(df_main[df_main["screening_decision"] == "include"],
                os.path.join(exports_dir, "include_records.ris"))
-    export_ris(df_main[df_main["must_cite"] == True],
-               os.path.join(exports_dir, "must_cite_records.ris"))
+    export_ris(df_main[df_main["must_cite_strict"]],
+           os.path.join(exports_dir, "core_studies.ris"))
+
+    export_ris(df_main[
+        (df_main["must_cite"]) & (~df_main["must_cite_strict"])
+    ],
+            os.path.join(exports_dir, "transferable_studies.ris"))
 
     export_ris(df_reviews, os.path.join(review_dir, "review_articles.ris"))
 
-    print("\nScreening completed.")
+    if SAVE_UAV_REVIEWS:
+        export_ris(df_reviews_uav,
+                   os.path.join(review_dir, "review_articles_uav.ris"))
+
+    # INFO
+    print("\n=== SUMMARY ===")
+    print(f"Records (non-review): {len(df_main)}")
+    print(f"Include: {(df_main['screening_decision']=='include').sum()}")
+    print(f"Maybe: {(df_main['screening_decision']=='maybe').sum()}")
+    print(f"Exclude: {(df_main['screening_decision']=='exclude').sum()}")
+
+    print("\n=== PRIORITY ===")
+    print(f"Must-cite (extended): {df_main['must_cite'].sum()}")
+    print(f"Must-cite (strict): {df_main['must_cite_strict'].sum()}")
+    print(f"Difference: {df_main['must_cite'].sum() - df_main['must_cite_strict'].sum()}")
+
+    print("\n=== STRUCTURE ===")
+    print(f"Core studies (strict): {df_main['must_cite_strict'].sum()}")
+    print(f"Extended total: {df_main['must_cite'].sum()}")
+    print(f"Transferable only: {df_main['must_cite'].sum() - df_main['must_cite_strict'].sum()}")
+
+    print("\n=== REVIEWS ===")
+    print(f"All reviews: {len(df_reviews)}")
+    print(f"UAV-related reviews: {len(df_reviews_uav)}")
+
+    print("\nOutputs:")
+    print(f"- dataset: {dataset_path}")
+    print(f"- reviews: {review_dir}")
+    print(f"- exports: {exports_dir}")
+    print(f"- reports: {reports_dir}")
+
+# ============================================
+# RUN
+# ============================================
+if __name__ == "__main__":
+    main()
